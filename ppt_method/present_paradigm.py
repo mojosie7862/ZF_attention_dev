@@ -5,17 +5,9 @@ import time
 
 def main():
 
-    paradigm = sys.argv[1]
     cf_path = r'C:\Users\josep\anaconda3\envs\ZF_attention_project\ppt_method\cf_presentation.pptx'
     dfm_path = r'C:\Users\josep\anaconda3\envs\ZF_attention_project\ppt_method\dfm_presentation.pptx'
     ufm_path = r'C:\Users\josep\anaconda3\envs\ZF_attention_project\ppt_method\ufm_presentation.pptx'
-
-    if paradigm == 'cf':
-        path = cf_path
-    elif paradigm == 'dfm':
-        path = dfm_path
-    elif paradigm == 'ufm':
-        path = ufm_path
 
     app = win32com.client.Dispatch("PowerPoint.Application")
     app.Visible = 1
@@ -52,7 +44,7 @@ def main():
 
     time.sleep(20)
 
-    app.SlideShowWindows(2).View.Exit()
+    app.SlideShowWindows(1).View.Exit()
     ufm_prs = PptPres(ufm_path)
     ufm_prs.runPPT()
 
