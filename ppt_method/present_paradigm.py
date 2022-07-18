@@ -1,53 +1,59 @@
 import win32com.client
+import win32api
 import random
-import sys
 import time
 
-def main():
 
-    cf_path = r'C:\Users\josep\anaconda3\envs\ZF_attention_project\ppt_method\cf_presentation.pptx'
-    dfm_path = r'C:\Users\josep\anaconda3\envs\ZF_attention_project\ppt_method\dfm_presentation.pptx'
-    ufm_path = r'C:\Users\josep\anaconda3\envs\ZF_attention_project\ppt_method\ufm_presentation.pptx'
+def main():
+    path = r'C:\Users\josep\anaconda3\envs\ZF_attention_project\ppt_method\paradigms.pptx'
+
+    runs = 6
+    rand_iti_start = 5
+    rand_iti_stop = 10
+    iti = random.randrange(rand_iti_start, rand_iti_stop)
+
+    paradigm_slides = [['cf', 12], ['dfm', 7], ['ufm', 2]]
+    all_runs = [['cf', 0], ['dfm', 0], ['ufm', 0]]
 
     app = win32com.client.Dispatch("PowerPoint.Application")
     app.Visible = 1
+    app.Presentations.Open(FileName=path)
+    app.ActivePresentation.SlideShowSettings.Run()
 
-    class PptPres():
-        def __init__(self, file_path):
-            self.prs = app.Presentations.Open(FileName=file_path)
-            self.path = file_path
-        def runPPT(self):
-            self.run = app.ActivePresentation.SlideShowSettings.Run()
-            self.count = app.ActivePresentation.Slides.Count
-            self.slides = app.ActivePresentation.Slides.Range(range(1,self.count+1))
-            #self.slide = app.ActivePresentation.SlideShowWindow.View.Slide.SlideNumber
-            for slide in self.slides:
-                print(slide.SlideNumber)
+    for i in range(runs+1):
+        this_run = random.choice(paradigm_slides)
+        print("this run", this_run[0])
 
-        def closePPT(self):
-            self.close = app.Presentations.Close(FileName=self.path)
+        app.SlideShowWindows(1).View.GotoSlide(this_run[1])
+        win32api.Sleep(2000)
+        app.SlideShowWindows(1).View.Next()
+        win32api.Sleep(2000)
+        app.SlideShowWindows(1).View.Next()
+        win32api.Sleep(2000)
+        app.SlideShowWindows(1).View.Next()
+        win32api.Sleep(2000)
+        app.SlideShowWindows(1).View.Next()
+        win32api.Sleep(2000)
+        app.SlideShowWindows(1).View.Next()
+        win32api.Sleep(2000)
+        app.SlideShowWindows(1).View.Next()
+        win32api.Sleep(2000)
+        app.SlideShowWindows(1).View.Next()
 
+        for x, j in enumerate(all_runs):
+            if this_run[0] == j[0]:
+                j[1] += 1
+            if j[1] == runs / 3:
+                paradigm_slides.pop(x)
+                all_runs.pop(x)
 
-        '''
-        #trying to stop at last slide to end show, randomize ITI and then start next random show
-        if p.slide == p.count:
-            app.Quit()'''
+        time.sleep(iti)
 
-    cf_prs = PptPres(cf_path)
-    cf_prs.runPPT()
-
-    time.sleep(20)
-
-    app.SlideShowWindows(1).View.Exit()
-    dfm_prs = PptPres(dfm_path)
-    dfm_prs.runPPT()
-
-    time.sleep(20)
-
-    app.SlideShowWindows(1).View.Exit()
-    ufm_prs = PptPres(ufm_path)
-    ufm_prs.runPPT()
-
+        if len(all_runs) == 0:
+            app.SlideShowWindows(1).View.GotoSlide(1)
+            break
 
 if __name__ == '__main__':
     main()
+
+#add timer and trial number
