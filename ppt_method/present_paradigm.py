@@ -24,21 +24,22 @@ def main():
         this_run = random.choice(paradigm_slides)
         print("this run", this_run[0])
 
-        app.SlideShowWindows(1).View.GotoSlide(this_run[1])
-        win32api.Sleep(2000)
-        app.SlideShowWindows(1).View.Next()
-        win32api.Sleep(2000)
-        app.SlideShowWindows(1).View.Next()
-        win32api.Sleep(2000)
-        app.SlideShowWindows(1).View.Next()
-        win32api.Sleep(2000)
-        app.SlideShowWindows(1).View.Next()
-        win32api.Sleep(2000)
-        app.SlideShowWindows(1).View.Next()
-        win32api.Sleep(2000)
-        app.SlideShowWindows(1).View.Next()
-        win32api.Sleep(2000)
-        app.SlideShowWindows(1).View.Next()
+        win32api.Sleep(2000)    # pre-stimulus time
+        app.SlideShowWindows(1).View.GotoSlide(this_run[1])     #advance to screen cue
+        win32api.Sleep(20)  #fixed
+        app.SlideShowWindows(1).View.Next()     #play screen cue
+        win32api.Sleep(1000)    # fixed
+        app.SlideShowWindows(1).View.Next()     #advance to sound slide
+        win32api.Sleep(20)  # fixed
+        app.SlideShowWindows(1).View.Next()     #play CF/FM
+        win32api.Sleep(2000)  # fixed
+        app.SlideShowWindows(1).View.Next()     #advance to black slide
+        win32api.Sleep(2000)  # pre-reward interval
+        app.SlideShowWindows(1).View.Next()     #advance to video slide
+        win32api.Sleep(20)  # fixed
+        app.SlideShowWindows(1).View.Next()     #start video
+        win32api.Sleep(10000)  # reward/aversion time
+        app.SlideShowWindows(1).View.Next()     #advance to black slide
 
         for x, j in enumerate(all_runs):
             if this_run[0] == j[0]:
