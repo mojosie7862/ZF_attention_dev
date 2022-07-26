@@ -133,13 +133,13 @@ def start_PPTrecording(filename):
         for y, j in enumerate(all_runs):
             if this_run[0] == j[0]:
                 j[1] += 1
-            if j[1] == numruns / 2:
+            if j[1] == numruns / 3:
                 paradigm_slides.pop(y)
                 all_runs.pop(y)
 
         time.sleep(iti)
         video_thread.stop()
-        while threading.active_count() > 2:
+        while threading.active_count() > 1:
             time.sleep(1)
         if len(all_runs) == 0:
             app.SlideShowWindows(1).View.GotoSlide(1)
