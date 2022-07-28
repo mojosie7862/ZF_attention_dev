@@ -8,7 +8,7 @@ import win32com.client
 import win32api
 
 user_initials = "JM"
-numruns = 5
+numruns = 10
 mindelay = 3
 maxdelay = 5
 
@@ -31,12 +31,12 @@ class VideoRecorder():
 
         self.open = True
         self.device_index = 0
-        self.fps = 60  # fps should be the minimum constant rate at which the camera can
-        #self.fourcc = "MJPG"  # capture images (with no decrease in speed over time; testing is required)
+        self.fps = 20  # fps should be the minimum constant rate at which the camera can
+        self.fourcc = "XVID"  # capture images (with no decrease in speed over time; testing is required)
         self.frameSize = (640, 480)  # video formats and sizes also depend and vary according to the camera used
         self.video_filename = fishID + "_run_" + str(run) + "_" + paradigm + ".avi"
         self.video_cap = cv2.VideoCapture(self.device_index)
-        self.video_writer = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
+        self.video_writer = cv2.VideoWriter_fourcc(*self.fourcc)
         self.video_out = cv2.VideoWriter(self.video_filename, self.video_writer, self.fps, self.frameSize)
         self.frame_counts = 1
         self.start_time = time.time()
@@ -50,7 +50,7 @@ class VideoRecorder():
 
                 self.video_out.write(video_frame)
                 self.frame_counts += 1
-                time.sleep(0.16)
+                time.sleep(0.05)
 
                 gray = cv2.cvtColor(video_frame, cv2.COLOR_BGR2GRAY)
                 cv2.imshow('video_frame', gray)
@@ -64,8 +64,11 @@ class VideoRecorder():
         if self.open == True:
 
             self.open = False
+            print("stopping")
             self.video_out.release()
+            print("video out")
             self.video_cap.release()
+            print("cap released")
             cv2.destroyAllWindows()
 
         else:
@@ -88,7 +91,7 @@ def start_PPTrecording(filename):
     app.Presentations.Open(FileName=filename)
     app.ActivePresentation.SlideShowSettings.Run()
 
-    #6-min novel environment test
+    # 6-min novel environment test
     novtest_vthread = VideoRecorder('novelenv', 'test')
     novtest_vthread.start()
     print("nt thread opened")
