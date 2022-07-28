@@ -71,11 +71,8 @@ class VideoRecorder():
         if self.open == True:
 
             self.open = False
-            print("stopping")
             self.video_out.release()
-            print("video out")
             self.video_cap.release()
-            print("cap released")
             cv2.destroyAllWindows()
 
         else:
@@ -101,10 +98,8 @@ def start_PPTrecording(filename):
     # 6-min novel environment test
     novtest_vthread = VideoRecorder('novelenv', 'test')
     novtest_vthread.start()
-    print("nt thread opened")
     time.sleep(10) #change to 360 for true trials
     novtest_vthread.stop()
-    print("nt thread closed")
 
     #loop through paradigm presentations and record from pre-stimulus to post reward/aversion
     for i in range(numruns):
@@ -117,7 +112,6 @@ def start_PPTrecording(filename):
         video_thread.start()
 
         win32api.Sleep((pre_stimulus_time * 1000) + 2000)  # pre-stimulus time
-        print(this_run[1])
         app.SlideShowWindows(1).View.GotoSlide(this_run[1])  # advance to screen cue
         win32api.Sleep(fixed_times[0])  # fixed 1
         app.SlideShowWindows(1).View.Next()  # play screen cue
@@ -140,10 +134,8 @@ def start_PPTrecording(filename):
             if j[1] == numruns / 3:
                 paradigm_slides.pop(y)
                 all_runs.pop(y)
-        print(iti)
         time.sleep(iti)
         video_thread.stop()
-        print("thread stopped")
         if len(all_runs) == 0:
             app.SlideShowWindows(1).View.GotoSlide(1)
             pythoncom.CoUninitialize()
