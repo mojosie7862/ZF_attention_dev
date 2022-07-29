@@ -29,6 +29,8 @@ notes = "(blank)"
 pre_stimulus_time = 4
 pre_reward_time = 4
 reward_aversion_time = 4
+
+tone_duration = 4000
 post_reward_time = 5
 
 filename = r'C:\Users\Kanwal\Dropbox\Josephine Zfish\ZF_attention\paradigms.pptx'
@@ -145,7 +147,7 @@ def start_PPTrecording(filename):
         app.SlideShowWindows(1).View.Next()  # advance to sound slide
         win32api.Sleep(fixed_times[2])  # fixed 3
         app.SlideShowWindows(1).View.Next()  # play CF/FM
-        win32api.Sleep(fixed_times[3])  # fixed 4
+        win32api.Sleep(tone_duration)  # fixed 4
         app.SlideShowWindows(1).View.Next()  # advance to black slide
         win32api.Sleep(pre_reward_time * 1000)  # pre-reward interval
         app.SlideShowWindows(1).View.Next()  # advance to video slide
@@ -276,6 +278,21 @@ def startup():
             else:
                 wfile.write("Reward/Aversion Time: (blank)\n")
 
+            global post_reward_time
+            if(not(txt100.get()=="")):
+                post_reward_time = int(txt100.get())
+                wfile.write("Post-reward Time: "+str(post_reward_time)+"\n")
+            else:
+                wfile.write("Post-reward Time: (blank)\n") 
+
+
+            global tone_duration
+            if(not(txt101.get()=="")):
+                tone_duration = int(txt101.get())
+                wfile.write("Tone Duration: "+str(tone_duration)+"\n")
+            else:
+                wfile.write("Tone Duration: (blank)\n")
+             
 
             global zfish_id 
             if(not(txt7.get()=="")):
@@ -378,6 +395,22 @@ def startup():
     panel54.add(label54)
     txt54 = tkinter.Entry(top1, validate='all',) 
     panel54.add(txt54)
+
+
+    panel100 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
+    panel100.pack()
+    label100 = tkinter.Label(top1, text="Post-reward Time: ") 
+    panel100.add(label100)
+    txt100 = tkinter.Entry(top1, validate='all',) 
+    panel100.add(txt100)
+
+
+    panel101 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
+    panel101.pack()
+    label101 = tkinter.Label(top1, text="Tone Duration: ")
+    panel101.add(label101)
+    txt101 = tkinter.Entry(top1, validate='all',) 
+    panel101.add(txt101)
 
     panel6 = tkinter.PanedWindow(panel2,orient=tkinter.VERTICAL)
     panel6.pack()
