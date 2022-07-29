@@ -29,6 +29,8 @@ notes = "(blank)"
 pre_stimulus_time = 4
 pre_reward_time = 4
 reward_aversion_time = 4
+
+tone_duration = 4000
 post_reward_time = 5
 
 run_onset = 0
@@ -148,7 +150,7 @@ def start_PPTrecording(filename):
         app.SlideShowWindows(1).View.Next()  # advance to sound slide
         win32api.Sleep(fixed_times[2])  # fixed 3
         app.SlideShowWindows(1).View.Next()  # play CF/FM
-        win32api.Sleep(fixed_times[3])  # fixed 4
+        win32api.Sleep(tone_duration)  # fixed 4
         app.SlideShowWindows(1).View.Next()  # advance to black slide
         win32api.Sleep(pre_reward_time * 1000)  # pre-reward interval
         app.SlideShowWindows(1).View.Next()  # advance to video slide
@@ -279,6 +281,21 @@ def startup():
             else:
                 wfile.write("Reward/Aversion Time: (blank)\n")
 
+            global post_reward_time
+            if(not(txt100.get()=="")):
+                post_reward_time = int(txt100.get())
+                wfile.write("Post-reward Time: "+str(post_reward_time)+"\n")
+            else:
+                wfile.write("Post-reward Time: (blank)\n") 
+
+
+            global tone_duration
+            if(not(txt101.get()=="")):
+                tone_duration = int(txt101.get())
+                wfile.write("Tone Duration: "+str(tone_duration)+"\n")
+            else:
+                wfile.write("Tone Duration: (blank)\n")
+             
 
             global zfish_id 
             if(not(txt7.get()=="")):
@@ -325,7 +342,7 @@ def startup():
 
     txt = tkinter.Entry(top1, validate='all', validatecommand=(val1, '%P'))
 
-    label = tkinter.Label(top1, text="Cam Id:")
+    label = tkinter.Label(top1, text="Cam Id:",anchor="w",font=("Arial", 12))
     
     panel1.add(label)
     panel1.add(txt)
@@ -335,83 +352,100 @@ def startup():
 
     panel3 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel3.pack()
-    label3 = tkinter.Label(top1, text="User Initials: ")
+    label3 = tkinter.Label(top1, text="User Initials: ",anchor="w",font=("Arial", 12))
     panel3.add(label3)
     txt3 = tkinter.Entry(top1, validate='all') 
     panel3.add(txt3)
 
     panel4 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel4.pack()
-    label4 = tkinter.Label(top1, text="Number of Runs/Recordings: ")
+    label4 = tkinter.Label(top1, text="Number of Runs/Recordings: ",anchor="w",font=("Arial", 12))
     panel4.add(label4)
     txt4 = tkinter.Entry(top1, validate='all', validatecommand=(val2, '%P')) 
     panel4.add(txt4)
 
     panel5 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel5.pack()
-    label5 = tkinter.Label(top1, text="ITI min (sec): ")
+    label5 = tkinter.Label(top1, text="ITI min (sec): ",anchor="w",font=("Arial", 12))
     panel5.add(label5)
     txt5 = tkinter.Entry(top1, validate='all', validatecommand=(val2, '%P')) 
     panel5.add(txt5)
 
     panel51 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel51.pack()
-    label51 = tkinter.Label(top1, text="ITI max (sec): ")
+    label51 = tkinter.Label(top1, text="ITI max (sec): ",anchor="w",font=("Arial", 12))
     panel51.add(label51)
     txt51 = tkinter.Entry(top1, validate='all', validatecommand=(val2, '%P')) 
     panel51.add(txt51)
     
     panel52 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel52.pack()
-    label52 = tkinter.Label(top1, text="Pre_stimulus Time: ")
+    label52 = tkinter.Label(top1, text="Pre_stimulus Time: ",anchor="w",font=("Arial", 12))
     panel52.add(label52)
     txt52 = tkinter.Entry(top1, validate='all') 
     panel52.add(txt52)
 
     panel53 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel53.pack()
-    label53 = tkinter.Label(top1, text="Pre-reward Time: ")
+    label53 = tkinter.Label(top1, text="Pre-reward Time: ",anchor="w",font=("Arial", 12))
     panel53.add(label53)
     txt53 = tkinter.Entry(top1, validate='all') 
     panel53.add(txt53)
 
     panel54 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel54.pack()
-    label54 = tkinter.Label(top1, text="Reward/Aversion Time: ")
+    label54 = tkinter.Label(top1, text="Reward/Aversion Time: ",anchor="w",font=("Arial", 12))
     panel54.add(label54)
     txt54 = tkinter.Entry(top1, validate='all',) 
     panel54.add(txt54)
 
+
+    panel100 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
+    panel100.pack()
+    label100 = tkinter.Label(top1, text="Post-reward Time: ",anchor="w",font=("Arial", 12)) 
+    panel100.add(label100)
+    txt100 = tkinter.Entry(top1, validate='all',) 
+    panel100.add(txt100)
+
+
+    panel101 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
+    panel101.pack()
+    label101 = tkinter.Label(top1, text="Tone Duration: ",anchor="w",font=("Arial", 12))
+    panel101.add(label101)
+    txt101 = tkinter.Entry(top1, validate='all',) 
+    panel101.add(txt101)
+
     panel6 = tkinter.PanedWindow(panel2,orient=tkinter.VERTICAL)
     panel6.pack()
-    label6 = tkinter.Label(top1, text="Fish Information: ")
-    label6.config(font=("Courier", 24))
+    label6 = tkinter.Label(top1, text="Fish Information: ",anchor='center',font=("Arial", 12))
+    label6.pack(anchor='center')
+    label6.config(font=("Arial", 24))
     panel6.add(label6)
 
     panel7 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel7.pack()
-    label7 = tkinter.Label(top1, text="Zfish ID: ")
+    label7 = tkinter.Label(top1, text="Zfish ID: ",anchor="w",font=("Arial", 12))
     panel7.add(label7)
     txt7 = tkinter.Entry(top1, validate='all') 
     panel7.add(txt7)
 
     panel8 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel8.pack()
-    label8 = tkinter.Label(top1, text="Gender (M/F): ")
+    label8 = tkinter.Label(top1, text="Gender (M/F): ",anchor="w",font=("Arial", 12))
     panel8.add(label8)
     txt8 = tkinter.Entry(top1, validate='all') 
     panel8.add(txt8)
 
     panel9 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel9.pack()
-    label9 = tkinter.Label(top1, text="Genotype (W/M/T): ")
+    label9 = tkinter.Label(top1, text="Genotype (W/M/T): ",anchor="w",font=("Arial", 12))
     panel9.add(label9)
     txt9 = tkinter.Entry(top1, validate='all') 
     panel9.add(txt9)
 
     panel10 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel10.pack()
-    label10 = tkinter.Label(top1, text="Notes: ")
+    label10 = tkinter.Label(top1, text="Notes: ",anchor="w",font=("Arial", 12))
     panel10.add(label10)
     txt10 = tkinter.Entry(top1, validate='all') 
     panel10.add(txt10)
