@@ -31,6 +31,8 @@ pre_reward_time = 4
 reward_aversion_time = 4
 post_reward_time = 5
 
+run_onset = 0
+
 filename = r'C:\Users\Kanwal\Dropbox\Josephine Zfish\ZF_attention\paradigms.pptx'
 
 now = datetime.now()
@@ -56,9 +58,9 @@ class VideoRecorder():
         self.frame_counts = 1
         self.start_time = time.time()
         self.font = cv2.FONT_HERSHEY_PLAIN
-        self.star = cv2.MARKER_STAR
-        self.diamond = cv2.MARKER_DIAMOND
-        self.xy =
+        self.tone_marker = cv2.MARKER_STAR
+        self.rew_av_marker = cv2.MARKER_DIAMOND
+        self.marker_point = (40,20)
 
     # Video starts being recorded
     def record(self):
@@ -69,10 +71,11 @@ class VideoRecorder():
                         self.font, 2, (255,255,255), 2, cv2.LINE_AA)
             if (ret == True):
                 marker_now = time.time()
-                tone_start = run_onset + pre_stimulus_time
-                tone_end = run_onset + pre_stimulus_time + 4 #making a variable for tone time
-                if tone_start < now < tone_end:
-                    cv2.drawMarker(video_frame, self.centroid)
+                tone_start = marker_now + pre_stimulus_time
+                tone_end = marker_now + pre_stimulus_time + 4 #making a variable for tone time
+                if tone_start < marker_now < tone_end:
+                    cv2.drawMarker(video_frame, self.marker_point, (0,0,255),
+                                   self.tone_marker, 40, 2, cv2.LINE_AA)
                 self.video_out.write(video_frame)
                 self.frame_counts += 1
                 time.sleep(0.05)
@@ -130,7 +133,7 @@ def start_PPTrecording(filename):
         global run_onset
         run_onset = time.time()
         run_now = datetime.now()
-        run_nowstr = run_onset.strftime("%Y-%m-%d %H:%M:%S %p")
+        run_nowstr = run_now.strftime("%Y-%m-%d %H:%M:%S %p")
 
         print('run', i + 1, ':', this_run[0], 'ITI:', iti, "onset:", run_nowstr)
 
