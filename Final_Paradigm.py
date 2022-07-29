@@ -30,12 +30,13 @@ pre_stimulus_time = 4
 pre_reward_time = 4
 reward_aversion_time = 4
 
-tone_duration = 4000
 post_reward_time = 5
+tone_duration = 4000
 
-run_onset = 0
+filename = r'C:\Users\Kanwal\Dropbox\Josephine Drug\ZF_attention\paradigms.pptx'
 
-filename = r'C:\Users\Kanwal\Dropbox\Josephine Zfish\ZF_attention\paradigms.pptx'
+
+
 
 now = datetime.now()
 nowstr = now.strftime("%Y-%m-%d %H:%M:%S %p")
@@ -43,13 +44,13 @@ nowstr = now.strftime("%Y-%m-%d %H:%M:%S %p")
 # new_dir = pathlib.Path('/Users/nataliaresende/Dropbox/PYTHON/', new_dir_name)
 # new_dir.mkdir(parents=True, exist_ok=True)
 
-class VideoRecorder():
+class VideoRecorder(): 
 
     # Video class based on openCV
     def __init__(self, run, paradigm):
 
         self.open = True
-        self.device_index = 0
+        self.device_index = cam_id
         self.fps = 20  # fps should be the minimum constant rate at which the camera can
         self.fourcc = "XVID"  # capture images (with no decrease in speed over time; testing is required)
         self.frameSize = (640, 480)  # video formats and sizes also depend and vary according to the camera used
@@ -60,9 +61,9 @@ class VideoRecorder():
         self.frame_counts = 1
         self.start_time = time.time()
         self.font = cv2.FONT_HERSHEY_PLAIN
-        self.tone_marker = cv2.MARKER_DIAMOND
-        self.rew_av_marker = cv2.MARKER_DIAMOND
-        self.marker_point = (40,20)
+        self.star = cv2.MARKER_STAR
+        self.diamond = cv2.MARKER_DIAMOND
+        self.xy = 10,10
 
     # Video starts being recorded
     def record(self):
@@ -71,21 +72,18 @@ class VideoRecorder():
             ret, video_frame = self.video_cap.read()
             cv2.putText(video_frame, str(datetime.now()), (20,40),
                         self.font, 2, (255,255,255), 2, cv2.LINE_AA)
-            cv2.drawMarker(video_frame, self.marker_point, (255, 0, 0),
-                           self.tone_marker, 40, 2, cv2.LINE_AA)
-            print(time.time())
             if (ret == True):
-                # marker_now = datetime.now()
-                # tone_start = marker_now + pre_stimulus_time
-                # tone_end = marker_now + pre_stimulus_time + tone_duration #making a variable for tone time
-                # if tone_start < marker_now < tone_end:
-                #     print("tone")
-
+                marker_now = time.time()
+                tone_start = run_onset + pre_reward_time
+                tone_end = run_onset + pre_reward_time + 4 #making a variable for tone time
+                if tone_start < now < tone_end:
+                    cv2.drawMarker(video_frame, self.centroid)
                 self.video_out.write(video_frame)
                 self.frame_counts += 1
                 time.sleep(0.05)
 
                 gray = cv2.cvtColor(video_frame, cv2.COLOR_BGR2GRAY)
+                cv2.circle(gray, (620, 20), 20, (0,0,255), -1) 
                 cv2.imshow('video_frame', gray)
                 cv2.waitKey(1)
             else:
@@ -118,7 +116,7 @@ def start_PPTrecording(filename):
     all_runs = [['cf', 0], ['dfm', 0], ['ufm', 0]]
 
     global fixed_times
-    fixed_times = [1, 6000, 1, 1]
+    fixed_times = [1, 6000, 1, 4000, 1]
     pythoncom.CoInitialize()
     app = win32com.client.Dispatch("PowerPoint.Application")
     app.Visible = 1
@@ -138,14 +136,14 @@ def start_PPTrecording(filename):
         global run_onset
         run_onset = time.time()
         run_now = datetime.now()
-        run_nowstr = run_now.strftime("%Y-%m-%d %H:%M:%S %p")
+        run_nowstr = run_onset.strftime("%Y-%m-%d %H:%M:%S %p")
 
         print('run', i + 1, ':', this_run[0], 'ITI:', iti, "onset:", run_nowstr)
 
         video_thread = VideoRecorder(i, this_run[0])
         video_thread.start()
 
-        win32api.Sleep((pre_stimulus_time * 1000) + 2000)  # pre-stimulus time
+        win32api.Sleep((pre_reward_time * 1000) + 2000)  # pre-stimulus time
         app.SlideShowWindows(1).View.GotoSlide(this_run[1])  # advance to screen cue
         win32api.Sleep(fixed_times[0])  # fixed 1
         app.SlideShowWindows(1).View.Next()  # play screen cue
@@ -153,11 +151,11 @@ def start_PPTrecording(filename):
         app.SlideShowWindows(1).View.Next()  # advance to sound slide
         win32api.Sleep(fixed_times[2])  # fixed 3
         app.SlideShowWindows(1).View.Next()  # play CF/FM
-        win32api.Sleep(tone_duration)  # tone duration
+        win32api.Sleep(tone_duration)  # fixed 4
         app.SlideShowWindows(1).View.Next()  # advance to black slide
-        win32api.Sleep(pre_reward_time * 1000)  # pre-reward interval
+        win32api.Sleep(pre_stimulus_time * 1000)  # pre-reward interval
         app.SlideShowWindows(1).View.Next()  # advance to video slide
-        win32api.Sleep(fixed_times[3])  # fixed 4
+        win32api.Sleep(fixed_times[4])  # fixed 5
         app.SlideShowWindows(1).View.Next()  # start video
         win32api.Sleep(reward_aversion_time * 1000)  # reward/aversion time
         app.SlideShowWindows(1).View.Next()  # advance to black slide
@@ -169,7 +167,6 @@ def start_PPTrecording(filename):
                 paradigm_slides.pop(y)
                 all_runs.pop(y)
 
-        #post reward time can't be less than the minimum iti
         time.sleep(post_reward_time)
         video_thread.stop()
         time.sleep(iti - post_reward_time)
@@ -223,7 +220,7 @@ def startup():
     panel1 = tkinter.PanedWindow(mainpanel)
     panel1.pack(fill=tkinter.BOTH, expand=1)
 
-    top1.geometry('368x440')
+    top1.geometry('360x440')    
     def c():  
         if(os.path.exists("transcript.txt")):   
             os.remove("transcript.txt")   
@@ -231,8 +228,8 @@ def startup():
             wfile.write("DateTime: "+str(datetime.now())+"\n")
 
             global cam_id    
-            if(not(txt.get()=="")):    
-                cam_id = int(txt.get())    
+            if(not(txt1.get()=="")):    
+                cam_id = int(txt1.get())    
                 wfile.write("CameraID: "+str(cam_id)+"\n")  
             else:   
                 wfile.write("CameraID: 0 DEFAULT\n") 
@@ -269,12 +266,12 @@ def startup():
                 pre_stimulus_time = int(txt52.get())
                 wfile.write("Pre-stimulus Time: "+str(pre_stimulus_time)+"\n")
             else:
-                wfile.write("Pre_stimulus Time: (blank)\n")
+                wfile.write("Pre-stimulus Time: (blank)\n")
 
             global pre_reward_time
             if(not(txt53.get()=="")):
                 pre_reward_time = int(txt53.get())
-                wfile.write("Pre-reward Time: "+str(pre_reward_time)+"\n")
+                wfile.write("Pre-reward time: "+str(pre_reward_time)+"\n")
             else:
                 wfile.write("Pre-reward Time: (blank)\n")
 
@@ -344,60 +341,61 @@ def startup():
     val1 = (top1.register(val))
     val2 = (top1.register(val))
 
-    txt = tkinter.Entry(top1, validate='all', validatecommand=(val1, '%P'))
-
-    label = tkinter.Label(top1, text="Cam Id:",anchor="w",font=("Arial", 12))
-    
-    panel1.add(label)
-    panel1.add(txt)
 
     panel2 = tkinter.PanedWindow(mainpanel,orient=tkinter.VERTICAL)
     panel2.pack()
 
+    panel1 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
+    panel1.pack(anchor="w")
+    label1 = tkinter.Label(top1, text="Cam Id: ",anchor="w",font=("Arial", 12))
+    panel1.add(label1)
+    txt1 = tkinter.Entry(top1, validate='all', validatecommand=(val2, '%P')) 
+    panel1.add(txt1)
+
     panel3 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel3.pack()
+    panel3.pack(anchor="w")
     label3 = tkinter.Label(top1, text="User Initials: ",anchor="w",font=("Arial", 12))
     panel3.add(label3)
     txt3 = tkinter.Entry(top1, validate='all') 
     panel3.add(txt3)
 
     panel4 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel4.pack()
+    panel4.pack(anchor="w")
     label4 = tkinter.Label(top1, text="Number of Runs/Recordings: ",anchor="w",font=("Arial", 12))
     panel4.add(label4)
     txt4 = tkinter.Entry(top1, validate='all', validatecommand=(val2, '%P')) 
     panel4.add(txt4)
 
     panel5 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel5.pack()
+    panel5.pack(anchor="w")
     label5 = tkinter.Label(top1, text="ITI min (sec): ",anchor="w",font=("Arial", 12))
     panel5.add(label5)
     txt5 = tkinter.Entry(top1, validate='all', validatecommand=(val2, '%P')) 
     panel5.add(txt5)
 
     panel51 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel51.pack()
+    panel51.pack(anchor="w")
     label51 = tkinter.Label(top1, text="ITI max (sec): ",anchor="w",font=("Arial", 12))
     panel51.add(label51)
     txt51 = tkinter.Entry(top1, validate='all', validatecommand=(val2, '%P')) 
     panel51.add(txt51)
     
     panel52 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel52.pack()
-    label52 = tkinter.Label(top1, text="Pre_stimulus Time: ",anchor="w",font=("Arial", 12))
+    panel52.pack(anchor="w")
+    label52 = tkinter.Label(top1, text="Pre-stimulus Time: ",anchor="w",font=("Arial", 12))
     panel52.add(label52)
     txt52 = tkinter.Entry(top1, validate='all') 
     panel52.add(txt52)
 
     panel53 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel53.pack()
-    label53 = tkinter.Label(top1, text="Pre-reward Time: ",anchor="w",font=("Arial", 12))
+    panel53.pack(anchor="w")
+    label53 = tkinter.Label(top1, text="Pre-reward time: ",anchor="w",font=("Arial", 12))
     panel53.add(label53)
     txt53 = tkinter.Entry(top1, validate='all') 
     panel53.add(txt53)
 
     panel54 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel54.pack()
+    panel54.pack(anchor="w")
     label54 = tkinter.Label(top1, text="Reward/Aversion Time: ",anchor="w",font=("Arial", 12))
     panel54.add(label54)
     txt54 = tkinter.Entry(top1, validate='all',) 
@@ -405,7 +403,7 @@ def startup():
 
 
     panel100 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel100.pack()
+    panel100.pack(anchor="w")
     label100 = tkinter.Label(top1, text="Post-reward Time: ",anchor="w",font=("Arial", 12)) 
     panel100.add(label100)
     txt100 = tkinter.Entry(top1, validate='all',) 
@@ -413,42 +411,42 @@ def startup():
 
 
     panel101 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel101.pack()
+    panel101.pack(anchor="w")
     label101 = tkinter.Label(top1, text="Tone Duration: ",anchor="w",font=("Arial", 12))
     panel101.add(label101)
     txt101 = tkinter.Entry(top1, validate='all',) 
     panel101.add(txt101)
 
     panel6 = tkinter.PanedWindow(panel2,orient=tkinter.VERTICAL)
-    panel6.pack()
-    label6 = tkinter.Label(top1, text="Fish Information: ",anchor='center',font=("Arial", 12))
+    panel6.pack(anchor="w")
+    label6 = tkinter.Label(top1, text="Zfish Information: ",anchor='center',font=("Arial", 12))
     label6.pack(anchor='center')
     label6.config(font=("Arial", 24))
     panel6.add(label6)
 
     panel7 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel7.pack()
+    panel7.pack(anchor="w")
     label7 = tkinter.Label(top1, text="Zfish ID: ",anchor="w",font=("Arial", 12))
     panel7.add(label7)
     txt7 = tkinter.Entry(top1, validate='all') 
     panel7.add(txt7)
 
     panel8 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel8.pack()
+    panel8.pack(anchor="w")
     label8 = tkinter.Label(top1, text="Gender (M/F): ",anchor="w",font=("Arial", 12))
     panel8.add(label8)
     txt8 = tkinter.Entry(top1, validate='all') 
     panel8.add(txt8)
 
     panel9 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel9.pack()
+    panel9.pack(anchor="w")
     label9 = tkinter.Label(top1, text="Genotype (W/M/T): ",anchor="w",font=("Arial", 12))
     panel9.add(label9)
     txt9 = tkinter.Entry(top1, validate='all') 
     panel9.add(txt9)
 
     panel10 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel10.pack()
+    panel10.pack(anchor="w")
     label10 = tkinter.Label(top1, text="Notes: ",anchor="w",font=("Arial", 12))
     panel10.add(label10)
     txt10 = tkinter.Entry(top1, validate='all') 
