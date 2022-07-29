@@ -7,6 +7,7 @@ import os
 import win32com.client
 import win32api
 import pythoncom
+from datetime import datetime
 
 camwidth = 640
 camheight = 480
@@ -17,8 +18,8 @@ cam_id = 0
 user_initial = "SM"
 
 numruns = 3
-mindelay = 3
-maxdelay = 5
+mindelay = 6
+maxdelay = 10
 
 zfish_id = "Z1"
 gender = "(blank)"
@@ -28,8 +29,15 @@ notes = "(blank)"
 pre_stimulus_time = 4
 pre_reward_time = 4
 reward_aversion_time = 4
+post_reward_time = 5
 
 filename = r'C:\Users\Kanwal\Dropbox\Josephine Zfish\ZF_attention\paradigms.pptx'
+
+now = datetime.now()
+nowstr = now.strftime("%Y-%m-%d %H:%M:%S %p")
+# new_dir_name = input(str(zfish_id)+nowstr)
+# new_dir = pathlib.Path('/Users/nataliaresende/Dropbox/PYTHON/', new_dir_name)
+# new_dir.mkdir(parents=True, exist_ok=True)
 
 class VideoRecorder():
 
@@ -47,14 +55,24 @@ class VideoRecorder():
         self.video_out = cv2.VideoWriter(self.video_filename, self.video_writer, self.fps, self.frameSize)
         self.frame_counts = 1
         self.start_time = time.time()
+        self.font = cv2.FONT_HERSHEY_PLAIN
+        self.star = cv2.MARKER_STAR
+        self.diamond = cv2.MARKER_DIAMOND
+        self.xy =
 
     # Video starts being recorded
     def record(self):
 
         while (self.open == True):
             ret, video_frame = self.video_cap.read()
+            cv2.putText(video_frame, str(datetime.now()), (20,40),
+                        self.font, 2, (255,255,255), 2, cv2.LINE_AA)
             if (ret == True):
-
+                marker_now = time.time()
+                tone_start = run_onset + pre_stimulus_time
+                tone_end = run_onset + pre_stimulus_time + 4 #making a variable for tone time
+                if tone_start < now < tone_end:
+                    cv2.drawMarker(video_frame, self.centroid)
                 self.video_out.write(video_frame)
                 self.frame_counts += 1
                 time.sleep(0.05)
@@ -64,6 +82,9 @@ class VideoRecorder():
                 cv2.waitKey(1)
             else:
                 break
+
+    def markerOn(self):
+        cv2.drawMarker()
 
     # Finishes the video recording therefore the thread too
     def stop(self):
@@ -87,8 +108,9 @@ def start_PPTrecording(filename):
 
     paradigm_slides = [['cf', 12], ['dfm', 7], ['ufm', 2]]
     all_runs = [['cf', 0], ['dfm', 0], ['ufm', 0]]
+
     global fixed_times
-    fixed_times = [1, 1000, 1, 2000, 1]
+    fixed_times = [1, 6000, 1, 4000, 1]
     pythoncom.CoInitialize()
     app = win32com.client.Dispatch("PowerPoint.Application")
     app.Visible = 1
@@ -98,15 +120,19 @@ def start_PPTrecording(filename):
     # 6-min novel environment test
     novtest_vthread = VideoRecorder('novelenv', 'test')
     novtest_vthread.start()
-    time.sleep(10) #change to 360 for true trials
+    time.sleep(15) #change to 360 for true trials
     novtest_vthread.stop()
 
     #loop through paradigm presentations and record from pre-stimulus to post reward/aversion
     for i in range(numruns):
         this_run = random.choice(paradigm_slides)
         iti = random.randint(mindelay, maxdelay)
+        global run_onset
+        run_onset = time.time()
+        run_now = datetime.now()
+        run_nowstr = run_onset.strftime("%Y-%m-%d %H:%M:%S %p")
 
-        print('run', i + 1, ':', this_run[0], 'ITI:', iti)
+        print('run', i + 1, ':', this_run[0], 'ITI:', iti, "onset:", run_nowstr)
 
         video_thread = VideoRecorder(i, this_run[0])
         video_thread.start()
@@ -134,8 +160,11 @@ def start_PPTrecording(filename):
             if j[1] == numruns / 3:
                 paradigm_slides.pop(y)
                 all_runs.pop(y)
-        time.sleep(iti)
+
+        time.sleep(post_reward_time)
         video_thread.stop()
+        time.sleep(iti - post_reward_time)
+
         if len(all_runs) == 0:
             app.SlideShowWindows(1).View.GotoSlide(1)
             pythoncom.CoUninitialize()
@@ -148,8 +177,6 @@ def start_PPTrecording(filename):
 
 
 def main_():
-    import win32com.client
-    import win32api
     start_PPTrecording(filename)
 
 def tkinter_start():
@@ -191,9 +218,8 @@ def startup():
     def c():  
         if(os.path.exists("transcript.txt")):   
             os.remove("transcript.txt")   
-        with open("transcript.txt", "a+") as wfile:   
-            import datetime  
-            wfile.write("DateTime: "+str(datetime.datetime.now())+"\n")  
+        with open("transcript.txt", "a+") as wfile:
+            wfile.write("DateTime: "+str(datetime.now())+"\n")
 
             global cam_id    
             if(not(txt.get()=="")):    
@@ -219,14 +245,14 @@ def startup():
                 mindelay = int(txt5.get())
                 wfile.write("Min ITI: "+str(mindelay)+" seconds\n")
             else:
-                wfile.write("Min ITI: 3 seconds DEFAULT\n")
+                wfile.write("Min ITI: 6 seconds DEFAULT\n")
 
             global maxdelay
             if(not(txt51.get()=="")):
                 maxdelay = int(txt51.get())
                 wfile.write("Max ITI: "+str(maxdelay)+" seconds\n")
             else:
-                wfile.write("Max ITI: 5 seconds DEFAULT\n")
+                wfile.write("Max ITI: 10 seconds DEFAULT\n")
 
 
             global pre_stimulus_time
