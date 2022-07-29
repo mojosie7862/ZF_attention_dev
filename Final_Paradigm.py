@@ -60,7 +60,7 @@ class VideoRecorder():
         self.frame_counts = 1
         self.start_time = time.time()
         self.font = cv2.FONT_HERSHEY_PLAIN
-        self.tone_marker = cv2.MARKER_STAR
+        self.tone_marker = cv2.MARKER_DIAMOND
         self.rew_av_marker = cv2.MARKER_DIAMOND
         self.marker_point = (40,20)
 
@@ -71,13 +71,16 @@ class VideoRecorder():
             ret, video_frame = self.video_cap.read()
             cv2.putText(video_frame, str(datetime.now()), (20,40),
                         self.font, 2, (255,255,255), 2, cv2.LINE_AA)
+            cv2.drawMarker(video_frame, self.marker_point, (255, 0, 0),
+                           self.tone_marker, 40, 2, cv2.LINE_AA)
+            print(time.time())
             if (ret == True):
-                marker_now = time.time()
-                tone_start = marker_now + pre_stimulus_time
-                tone_end = marker_now + pre_stimulus_time + 4 #making a variable for tone time
-                if tone_start < marker_now < tone_end:
-                    cv2.drawMarker(video_frame, self.marker_point, (0,0,255),
-                                   self.tone_marker, 40, 2, cv2.LINE_AA)
+                # marker_now = datetime.now()
+                # tone_start = marker_now + pre_stimulus_time
+                # tone_end = marker_now + pre_stimulus_time + tone_duration #making a variable for tone time
+                # if tone_start < marker_now < tone_end:
+                #     print("tone")
+
                 self.video_out.write(video_frame)
                 self.frame_counts += 1
                 time.sleep(0.05)
@@ -115,7 +118,7 @@ def start_PPTrecording(filename):
     all_runs = [['cf', 0], ['dfm', 0], ['ufm', 0]]
 
     global fixed_times
-    fixed_times = [1, 6000, 1, 4000, 1]
+    fixed_times = [1, 6000, 1, 1]
     pythoncom.CoInitialize()
     app = win32com.client.Dispatch("PowerPoint.Application")
     app.Visible = 1
@@ -150,11 +153,11 @@ def start_PPTrecording(filename):
         app.SlideShowWindows(1).View.Next()  # advance to sound slide
         win32api.Sleep(fixed_times[2])  # fixed 3
         app.SlideShowWindows(1).View.Next()  # play CF/FM
-        win32api.Sleep(tone_duration)  # fixed 4
+        win32api.Sleep(tone_duration)  # tone duration
         app.SlideShowWindows(1).View.Next()  # advance to black slide
         win32api.Sleep(pre_reward_time * 1000)  # pre-reward interval
         app.SlideShowWindows(1).View.Next()  # advance to video slide
-        win32api.Sleep(fixed_times[4])  # fixed 5
+        win32api.Sleep(fixed_times[3])  # fixed 4
         app.SlideShowWindows(1).View.Next()  # start video
         win32api.Sleep(reward_aversion_time * 1000)  # reward/aversion time
         app.SlideShowWindows(1).View.Next()  # advance to black slide
@@ -166,6 +169,7 @@ def start_PPTrecording(filename):
                 paradigm_slides.pop(y)
                 all_runs.pop(y)
 
+        #post reward time can't be less than the minimum iti
         time.sleep(post_reward_time)
         video_thread.stop()
         time.sleep(iti - post_reward_time)
@@ -219,7 +223,7 @@ def startup():
     panel1 = tkinter.PanedWindow(mainpanel)
     panel1.pack(fill=tkinter.BOTH, expand=1)
 
-    top1.geometry('368x340')    
+    top1.geometry('368x440')
     def c():  
         if(os.path.exists("transcript.txt")):   
             os.remove("transcript.txt")   
