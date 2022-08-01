@@ -8,6 +8,7 @@ import win32com.client
 import win32api
 import pythoncom
 from datetime import datetime
+import sys
 
 camwidth = 640
 camheight = 480
@@ -31,18 +32,16 @@ pre_reward_time = 4
 reward_aversion_time = 4
 
 post_reward_time = 5
-tone_duration = 4000
+tone_duration = 4
 
 filename = r'C:\Users\Kanwal\Dropbox\Josephine Zfish\ZF_attention\paradigms.pptx'
 
 tonePlaying = 0
+videoPlaying = 0
 
 now = datetime.now()
 nowstr = now.strftime("%Y-%m-%d %H:%M:%S %p")
 now = time.time()
-# new_dir_name = input(str(fish_id)+nowstr)
-# new_dir = pathlib.Path('/Users/nataliaresende/Dropbox/PYTHON/', new_dir_name)
-# new_dir.mkdir(parents=True, exist_ok=True)
 
 class VideoRecorder():
 
@@ -70,30 +69,29 @@ class VideoRecorder():
 
         while (self.open == True):
             ret, video_frame = self.video_cap.read()
-            if(tonePlaying==1):
+            if (tonePlaying==1):
                 cv2.putText(video_frame, str(datetime.now()), (20,40),
                         self.font, 2, (0,0,0), 2, cv2.LINE_AA)
-                        
                 cv2.circle(video_frame, (620, 20), 20, (0,0,255), -1)
             
+            elif videoPlaying == 1:
+                cv2.putText(video_frame, str(datetime.now()), (20, 40),
+                            self.font, 2, (0, 0, 0), 2, cv2.LINE_AA)
+                cv2.rectangle(video_frame, (580, 10), (620, 40), (255, 0, 0), -1)
+
             else:
                 cv2.putText(video_frame, str(datetime.now()), (20,40),
                         self.font, 2, (255,255,255), 2, cv2.LINE_AA)
             
             if (ret == True):
-                marker_now = time.time()
-                tone_start = run_onset + pre_reward_time
-                tone_end = run_onset + pre_reward_time + 4 #making a variable for tone time
-                if tone_start < now < tone_end:
-                    cv2.drawMarker(video_frame, self.centroid)
+
                 self.video_out.write(video_frame)
                 self.frame_counts += 1
                 time.sleep(0.05)
-
                 gray = cv2.cvtColor(video_frame, cv2.COLOR_BGR2GRAY)
-                
                 cv2.imshow('video_frame', gray)
                 cv2.waitKey(1)
+
             else:
                 break
 
@@ -124,7 +122,7 @@ def start_PPTrecording(filename):
     all_runs = [['cf', 0], ['dfm', 0], ['ufm', 0]]
 
     global fixed_times
-    fixed_times = [1, 6000, 1, 4000, 1]
+    fixed_times = [1, 6000, 1, 1]
     pythoncom.CoInitialize()
     app = win32com.client.Dispatch("PowerPoint.Application")
     app.Visible = 1
@@ -132,10 +130,24 @@ def start_PPTrecording(filename):
     app.ActivePresentation.SlideShowSettings.Run()
 
     # 6-min novel environment test
-    novtest_vthread = VideoRecorder('novelenv', 'test')
-    novtest_vthread.start()
-    time.sleep(15) #change to 360 for true trials
-    novtest_vthread.stop()
+    nov_test_len = 60
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'novel':
+            novtest_vthread = VideoRecorder('novelenv', 'test')
+            novtest_vthread.start()
+            print("novel environment test")
+            time.sleep(nov_test_len) #change to 360 for true trials
+            novtest_vthread.stop()
+
+    print("Trial Onset:", nowstr)
+    fixed = sum(fixed_times) / 1000
+    vars = fixed + pre_stimulus_time + tone_duration + pre_reward_time + reward_aversion_time + post_reward_time
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'novel':
+            vars += nov_test_len
+    trial_min = (vars + mindelay) * numruns
+    trial_max = (vars + maxdelay) * numruns
+    print("Length of Trial:", trial_min / 60, "-", trial_max / 60, "minutes")
 
     #loop through paradigm presentations and record from pre-stimulus to post reward/aversion
     for i in range(numruns):
@@ -143,11 +155,10 @@ def start_PPTrecording(filename):
         iti = random.randint(mindelay, maxdelay)
         global run_onset
         run_onset = time.time()
-        run_now = datetime.now()
-        run_nowstr = str(run_now)
-        #run_nowstr = run_onsetdate.strftime("%Y-%m-%d %H:%M:%S %p")
+        run_now = datetime.now().replace(microsecond=0)
+        run_nowstr = '_'.join(str(run_now).split())
 
-        print('run', i + 1, ':', this_run[0], 'ITI:', iti, "onset:", run_nowstr)
+        print('run', i + 1, ':', this_run[0], 'ITI:', iti, "onset:", run_now)
 
         with open("transcript.txt","a+") as wfile:
             wfile.write('run '+str(i + 1)+ ': '+ str(this_run[0])+ ' ITI:'+str(iti)+" onset:"+str(run_nowstr))
@@ -163,18 +174,19 @@ def start_PPTrecording(filename):
         app.SlideShowWindows(1).View.Next()  # advance to sound slide
         win32api.Sleep(fixed_times[2])  # fixed 3
         app.SlideShowWindows(1).View.Next()  # play CF/FM
-        print("Start Playing Tone")
         global tonePlaying
         tonePlaying = 1
-        win32api.Sleep(tone_duration)  # fixed 4
-        print("Tone Ends")
-        tonePlaying = 0 
+        win32api.Sleep(tone_duration * 1000)  # tone_duration
+        tonePlaying = 0
         app.SlideShowWindows(1).View.Next()  # advance to black slide
         win32api.Sleep(pre_stimulus_time * 1000)  # pre-reward interval
         app.SlideShowWindows(1).View.Next()  # advance to video slide
-        win32api.Sleep(fixed_times[4])  # fixed 5
+        win32api.Sleep(fixed_times[3])  # fixed 5
         app.SlideShowWindows(1).View.Next()  # start video
+        global videoPlaying
+        videoPlaying = 1
         win32api.Sleep(reward_aversion_time * 1000)  # reward/aversion time
+        videoPlaying = 0
         app.SlideShowWindows(1).View.Next()  # advance to black slide
 
         for y, j in enumerate(all_runs):
@@ -414,7 +426,7 @@ def startup():
 
 
 
-   panel100 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
+    panel100 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel100.pack(anchor="w")
     label100 = tkinter.Label(top1, text="Post-reward Time: ",anchor="w",font=("Arial", 12)) 
     panel100.add(label100)
