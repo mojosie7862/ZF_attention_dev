@@ -13,7 +13,7 @@ camwidth = 640
 camheight = 480
 toggle = 1;
 recordingIndex = -999
-
+run_onset = 0
 cam_id = 0
 user_initial = "SM"
 
@@ -21,7 +21,7 @@ numruns = 3
 mindelay = 6
 maxdelay = 10
 
-zfish_id = "Z1"
+fish_id = "Z1"
 gender = "(blank)"
 genotype = "(blank)"
 notes = "(blank)"
@@ -33,28 +33,28 @@ reward_aversion_time = 4
 post_reward_time = 5
 tone_duration = 4000
 
-filename = r'C:\Users\Kanwal\Dropbox\Josephine Drug\ZF_attention\paradigms.pptx'
+filename = r'C:\Users\Kanwal\Dropbox\Josephine Zfish\ZF_attention\paradigms.pptx'
 
-
-
+tonePlaying = 0
 
 now = datetime.now()
 nowstr = now.strftime("%Y-%m-%d %H:%M:%S %p")
-# new_dir_name = input(str(zfish_id)+nowstr)
+now = time.time()
+# new_dir_name = input(str(fish_id)+nowstr)
 # new_dir = pathlib.Path('/Users/nataliaresende/Dropbox/PYTHON/', new_dir_name)
 # new_dir.mkdir(parents=True, exist_ok=True)
 
-class VideoRecorder(): 
+class VideoRecorder():
 
     # Video class based on openCV
     def __init__(self, run, paradigm):
 
         self.open = True
         self.device_index = cam_id
-        self.fps = 20  # fps should be the minimum constant rate at which the camera can
+        self.fps = 20  # fps should be the minimum constant  rate at which the camera can
         self.fourcc = "XVID"  # capture images (with no decrease in speed over time; testing is required)
         self.frameSize = (640, 480)  # video formats and sizes also depend and vary according to the camera used
-        self.video_filename = zfish_id + "_run_" + str(run) + "_" + paradigm + ".avi"
+        self.video_filename = fish_id + "_run_" + str(run) + "_" + paradigm + ".avi"
         self.video_cap = cv2.VideoCapture(self.device_index)
         self.video_writer = cv2.VideoWriter_fourcc(*self.fourcc)
         self.video_out = cv2.VideoWriter(self.video_filename, self.video_writer, self.fps, self.frameSize)
@@ -70,8 +70,16 @@ class VideoRecorder():
 
         while (self.open == True):
             ret, video_frame = self.video_cap.read()
-            cv2.putText(video_frame, str(datetime.now()), (20,40),
+            if(tonePlaying==1):
+                cv2.putText(video_frame, str(datetime.now()), (20,40),
+                        self.font, 2, (0,0,0), 2, cv2.LINE_AA)
+                        
+                cv2.circle(video_frame, (620, 20), 20, (0,0,255), -1)
+            
+            else:
+                cv2.putText(video_frame, str(datetime.now()), (20,40),
                         self.font, 2, (255,255,255), 2, cv2.LINE_AA)
+            
             if (ret == True):
                 marker_now = time.time()
                 tone_start = run_onset + pre_reward_time
@@ -83,7 +91,7 @@ class VideoRecorder():
                 time.sleep(0.05)
 
                 gray = cv2.cvtColor(video_frame, cv2.COLOR_BGR2GRAY)
-                cv2.circle(gray, (620, 20), 20, (0,0,255), -1) 
+                
                 cv2.imshow('video_frame', gray)
                 cv2.waitKey(1)
             else:
@@ -136,9 +144,13 @@ def start_PPTrecording(filename):
         global run_onset
         run_onset = time.time()
         run_now = datetime.now()
-        run_nowstr = run_onset.strftime("%Y-%m-%d %H:%M:%S %p")
+        run_nowstr = str(run_now)
+        #run_nowstr = run_onsetdate.strftime("%Y-%m-%d %H:%M:%S %p")
 
         print('run', i + 1, ':', this_run[0], 'ITI:', iti, "onset:", run_nowstr)
+
+        with open("transcript.txt","a+") as wfile:
+            wfile.write('run '+str(i + 1)+ ': '+ str(this_run[0])+ ' ITI:'+str(iti)+" onset:"+str(run_nowstr))
 
         video_thread = VideoRecorder(i, this_run[0])
         video_thread.start()
@@ -151,7 +163,12 @@ def start_PPTrecording(filename):
         app.SlideShowWindows(1).View.Next()  # advance to sound slide
         win32api.Sleep(fixed_times[2])  # fixed 3
         app.SlideShowWindows(1).View.Next()  # play CF/FM
+        print("Start Playing Tone")
+        global tonePlaying
+        tonePlaying = 1
         win32api.Sleep(tone_duration)  # fixed 4
+        print("Tone Ends")
+        tonePlaying = 0 
         app.SlideShowWindows(1).View.Next()  # advance to black slide
         win32api.Sleep(pre_stimulus_time * 1000)  # pre-reward interval
         app.SlideShowWindows(1).View.Next()  # advance to video slide
@@ -195,8 +212,9 @@ def tkinter_start():
             with open("transcript.txt","a+") as wfile:
                 wfile.write("Emergency stop")
             print("Stopped Recording, exiting program")
-            cv2.destroyAllWindows()
             os._exit(0)
+            cv2.destroyAllWindows()
+            
 
     B = tkinter.Button(top, text ="Stop Recording", command = action)
 
@@ -271,7 +289,7 @@ def startup():
             global pre_reward_time
             if(not(txt53.get()=="")):
                 pre_reward_time = int(txt53.get())
-                wfile.write("Pre-reward time: "+str(pre_reward_time)+"\n")
+                wfile.write("Pre-reward Time: "+str(pre_reward_time)+"\n")
             else:
                 wfile.write("Pre-reward Time: (blank)\n")
 
@@ -298,12 +316,12 @@ def startup():
                 wfile.write("Tone Duration: (blank)\n")
              
 
-            global zfish_id 
+            global fish_id 
             if(not(txt7.get()=="")):
-                zfish_id  = txt7.get()
-                wfile.write("Zfish ID: "+str(zfish_id )+"\n")
+                fish_id  = txt7.get()
+                wfile.write("Fish ID: "+str(fish_id )+"\n")
             else:
-                wfile.write("Zfish ID: Z1 DEFAULT\n")           
+                wfile.write("Fish ID: Z1 DEFAULT\n")           
 
             global gender
             if(not(txt8.get()=="")):
@@ -389,10 +407,21 @@ def startup():
 
     panel53 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel53.pack(anchor="w")
-    label53 = tkinter.Label(top1, text="Pre-reward time: ",anchor="w",font=("Arial", 12))
+    label53 = tkinter.Label(top1, text="Pre-reward Time: ",anchor="w",font=("Arial", 12))
     panel53.add(label53)
     txt53 = tkinter.Entry(top1, validate='all') 
     panel53.add(txt53)
+
+
+
+   panel100 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
+    panel100.pack(anchor="w")
+    label100 = tkinter.Label(top1, text="Post-reward Time: ",anchor="w",font=("Arial", 12)) 
+    panel100.add(label100)
+    txt100 = tkinter.Entry(top1, validate='all',) 
+    panel100.add(txt100)
+
+
 
     panel54 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel54.pack(anchor="w")
@@ -400,14 +429,6 @@ def startup():
     panel54.add(label54)
     txt54 = tkinter.Entry(top1, validate='all',) 
     panel54.add(txt54)
-
-
-    panel100 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel100.pack(anchor="w")
-    label100 = tkinter.Label(top1, text="Post-reward Time: ",anchor="w",font=("Arial", 12)) 
-    panel100.add(label100)
-    txt100 = tkinter.Entry(top1, validate='all',) 
-    panel100.add(txt100)
 
 
     panel101 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
@@ -419,14 +440,14 @@ def startup():
 
     panel6 = tkinter.PanedWindow(panel2,orient=tkinter.VERTICAL)
     panel6.pack(anchor="w")
-    label6 = tkinter.Label(top1, text="Zfish Information: ",anchor='center',font=("Arial", 12))
+    label6 = tkinter.Label(top1, text="Fish Information: ",anchor='center',font=("Arial", 12))
     label6.pack(anchor='center')
     label6.config(font=("Arial", 24))
     panel6.add(label6)
 
     panel7 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel7.pack(anchor="w")
-    label7 = tkinter.Label(top1, text="Zfish ID: ",anchor="w",font=("Arial", 12))
+    label7 = tkinter.Label(top1, text="Fish ID: ",anchor="w",font=("Arial", 12))
     panel7.add(label7)
     txt7 = tkinter.Entry(top1, validate='all') 
     panel7.add(txt7)
