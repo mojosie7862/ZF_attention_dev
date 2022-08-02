@@ -129,16 +129,7 @@ def start_PPTrecording(filename):
     app.Presentations.Open(FileName=filename)
     app.ActivePresentation.SlideShowSettings.Run()
 
-    # 6-min novel environment test
     nov_test_len = 60
-    if len(sys.argv) > 1:
-        if sys.argv[1] == 'novel':
-            novtest_vthread = VideoRecorder('novelenv', 'test')
-            novtest_vthread.start()
-            print("novel environment test")
-            time.sleep(nov_test_len) #change to 360 for true trials
-            novtest_vthread.stop()
-
     print("Trial Onset:", nowstr)
     fixed = sum(fixed_times) / 1000
     vars = fixed + pre_stimulus_time + tone_duration + pre_reward_time + reward_aversion_time + post_reward_time
@@ -147,7 +138,17 @@ def start_PPTrecording(filename):
             vars += nov_test_len
     trial_min = (vars + mindelay) * numruns
     trial_max = (vars + maxdelay) * numruns
-    print("Length of Trial:", trial_min / 60, "-", trial_max / 60, "minutes")
+    print("Length of Trial:", round((trial_min / 60), 1), "-", round((trial_max / 60), 1), "minutes")
+
+    # 6-min novel environment test
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'novel':
+            novtest_vthread = VideoRecorder('novelenv', 'test')
+            app.SlideShowWindows(1).View.GotoSlide(1)
+            novtest_vthread.start()
+            print("novel environment test")
+            time.sleep(nov_test_len) #change to 360 for true trials
+            novtest_vthread.stop()
 
     #loop through paradigm presentations and record from pre-stimulus to post reward/aversion
     for i in range(numruns):
