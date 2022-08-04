@@ -1,9 +1,13 @@
+from cmd import IDENTCHARS
 import random
+from sqlite3 import Time
 import tkinter
 import cv2
 import threading
 import time
 import os
+from jinja2 import PrefixLoader
+from torch import initial_seed
 import win32com.client
 import win32api
 import pythoncom
@@ -30,11 +34,10 @@ notes = "(blank)"
 pre_stimulus_time = 4
 pre_reward_time = 4
 reward_aversion_time = 4
-
 post_reward_time = 5
-tone_duration = 4
+tone_duration = 4 
 
-filename = r'C:\Users\Kanwal\Dropbox\Josephine Zfish\ZF_attention\paradigms.pptx'
+filename = 
 
 tonePlaying = 0
 videoPlaying = 0
@@ -150,7 +153,7 @@ def start_PPTrecording(filename):
             time.sleep(nov_test_len) #change to 360 for true trials
             novtest_vthread.stop()
 
-    #loop through paradigm presentations and record from pre-stimulus to post reward/aversion
+    #loop through paradigm presentations and record from pre_stimulus_time to post reward_aversion_time
     for i in range(numruns):
         this_run = random.choice(paradigm_slides)
         iti = random.randint(mindelay, maxdelay)
@@ -161,8 +164,8 @@ def start_PPTrecording(filename):
 
         print('run', i + 1, ':', this_run[0], 'ITI:', iti, "onset:", run_now)
 
-        with open("transcript.txt","a+") as wfile:
-            wfile.write('run '+str(i + 1)+ ': '+ str(this_run[0])+ ' ITI:'+str(iti)+" onset:"+str(run_nowstr))
+        #with open("transcript.csv","a+") as wfile:
+        #    wfile.write('run '+str(i + 1)+ ': '+ str(this_run[0])+ ' ITI:'+str(iti)+" onset:"+str(run_nowstr))
 
         video_thread = VideoRecorder(i, this_run[0])
         video_thread.start()
@@ -177,16 +180,16 @@ def start_PPTrecording(filename):
         app.SlideShowWindows(1).View.Next()  # play CF/FM
         global tonePlaying
         tonePlaying = 1
-        win32api.Sleep(tone_duration * 1000)  # tone_duration
+        win32api.Sleep(tone_duration * 1000)  # Analysis Period
         tonePlaying = 0
         app.SlideShowWindows(1).View.Next()  # advance to black slide
-        win32api.Sleep(pre_stimulus_time * 1000)  # pre-reward interval
+        win32api.Sleep(pre_stimulus_time * 1000)  # pre_reward_time interval
         app.SlideShowWindows(1).View.Next()  # advance to video slide
         win32api.Sleep(fixed_times[3])  # fixed 5
         app.SlideShowWindows(1).View.Next()  # start video
         global videoPlaying
         videoPlaying = 1
-        win32api.Sleep(reward_aversion_time * 1000)  # reward/aversion time
+        win32api.Sleep(reward_aversion_time * 1000)  # reward_aversion_time time
         videoPlaying = 0
         app.SlideShowWindows(1).View.Next()  # advance to black slide
 
@@ -205,11 +208,11 @@ def start_PPTrecording(filename):
             app.SlideShowWindows(1).View.GotoSlide(1)
             pythoncom.CoUninitialize()
             print("Presentation finished.")
-            with open("transcript.txt","a+") as wfile:
-                wfile.write("Presentation finished.\n")
+            #with open("transcript.csv","a+") as wfile:
+            #    wfile.write("Presentation finished.\n")
             break
-        with open("transcript.txt","a+") as wfile:
-            wfile.write("Filename: "+video_thread.video_filename+"\n\n")
+        #with open("transcript.csv","a+") as wfile:
+        #    wfile.write("Filename: "+video_thread.video_filename+"\n\n")
 
 
 def main_():
@@ -222,8 +225,8 @@ def tkinter_start():
         global toggle
         toggle *= -1
         if(toggle==-1):
-            with open("transcript.txt","a+") as wfile:
-                wfile.write("Emergency stop")
+            #with open("transcript.csv","a+") as wfile:
+            #    wfile.write("Emergency stop")
             print("Stopped Recording, exiting program")
             os._exit(0)
             cv2.destroyAllWindows()
@@ -253,115 +256,120 @@ def startup():
 
     top1.geometry('360x440')    
     def c():  
-        if(os.path.exists("transcript.txt")):   
-            os.remove("transcript.txt")   
-        with open("transcript.txt", "a+") as wfile:
-            wfile.write("DateTime: "+str(datetime.now())+"\n")
-
-            global cam_id    
-            if(not(txt1.get()=="")):    
-                cam_id = int(txt1.get())    
-                wfile.write("CameraID: "+str(cam_id)+"\n")  
-            else:   
-                wfile.write("CameraID: 0 DEFAULT\n") 
-            global user_initial
-            user_initial = txt3.get()
-            if(not(txt3.get()=="")):
-                wfile.write("User Initials: "+str(user_initial)+"\n")
-            else:
-                wfile.write("User Initials: (blank)\n")
-            global numruns
-            if(not(txt4.get()=="")):
-                numruns = int(txt4.get())
-                wfile.write("Number of Runs/Recordings: "+str(numruns)+"\n")
-            else:
-                wfile.write("Number of Runs/Recordings: 3 DEFAULT\n")
-
-            global mindelay
-            if(not(txt5.get()=="")):
-                mindelay = int(txt5.get())
-                wfile.write("Min ITI: "+str(mindelay)+" seconds\n")
-            else:
-                wfile.write("Min ITI: 6 seconds DEFAULT\n")
-
-            global maxdelay
-            if(not(txt51.get()=="")):
-                maxdelay = int(txt51.get())
-                wfile.write("Max ITI: "+str(maxdelay)+" seconds\n")
-            else:
-                wfile.write("Max ITI: 10 seconds DEFAULT\n")
-
-
-            global pre_stimulus_time
-            if(not(txt52.get()=="")):
-                pre_stimulus_time = int(txt52.get())
-                wfile.write("Pre-stimulus Time: "+str(pre_stimulus_time)+"\n")
-            else:
-                wfile.write("Pre-stimulus Time: (blank)\n")
-
-            global pre_reward_time
-            if(not(txt53.get()=="")):
-                pre_reward_time = int(txt53.get())
-                wfile.write("Pre-reward Time: "+str(pre_reward_time)+"\n")
-            else:
-                wfile.write("Pre-reward Time: (blank)\n")
-
-            global reward_aversion_time
-            if(not(txt54.get()=="")):
-                reward_aversion_time = int(txt54.get())
-                wfile.write("Reward/Aversion Time: "+str(reward_aversion_time)+"\n")
-            else:
-                wfile.write("Reward/Aversion Time: (blank)\n")
-
-            global post_reward_time
-            if(not(txt100.get()=="")):
-                post_reward_time = int(txt100.get())
-                wfile.write("Post-reward Time: "+str(post_reward_time)+"\n")
-            else:
-                wfile.write("Post-reward Time: (blank)\n") 
-
-
-            global tone_duration
-            if(not(txt101.get()=="")):
-                tone_duration = int(txt101.get())
-                wfile.write("Tone Duration: "+str(tone_duration)+"\n")
-            else:
-                wfile.write("Tone Duration: (blank)\n")
-             
-
+        if(not os.path.exists("transcript.csv")):   
+            with open("transcript.csv","a+") as wfile:
+                wfile.write("Fish ID, Gender, Date, Time, Initials, Num Runs, Min ITI, Max ITI, Post-reward Time, Analysis Period, Camera ID, Genotype, Notes, Pre-Stimulus Time, Pre-Reward Time, Reward/Aversion Time\n")
+        with open("transcript.csv", "a+") as wfile:
             global fish_id 
             if(not(txt7.get()=="")):
                 fish_id  = txt7.get()
-                wfile.write("Fish ID: "+str(fish_id )+"\n")
+                wfile.write(str(fish_id)+",")
             else:
-                wfile.write("Fish ID: Z1 DEFAULT\n")           
+                wfile.write("Z1,")           
 
             global gender
             if(not(txt8.get()=="")):
                 gender = txt8.get()
             
-                wfile.write("Gender (M/F): "+str(gender)+"\n")
+                wfile.write(str(gender)+",")
             else:
-                wfile.write("Gender (M/F): (blank)\n")  
+                wfile.write("(blank),") 
+            
+            wfile.write(str( datetime.today().strftime('%Y-%m-%d'))+",")
+            wfile.write(str(datetime.now().strftime('%H:%M:%S'))+",")
+            
+            
+            
+            global user_initial
+            user_initial = txt3.get()
+            if(not(txt3.get()=="")):
+                wfile.write(str(user_initial)+",")
+            else:
+                wfile.write("(blank),")
+
+            global numruns
+            if(not(txt4.get()=="")):
+                numruns = int(txt4.get())
+                wfile.write(str(numruns)+",")
+            else:
+                wfile.write("3,")
+
+            global mindelay
+            if(not(txt5.get()=="")):
+                mindelay = int(txt5.get())
+                wfile.write(str(mindelay)+" seconds,")
+            else:
+                wfile.write("6 seconds,")
+
+            global maxdelay
+            if(not(txt51.get()=="")):
+                maxdelay = int(txt51.get())
+                wfile.write(str(maxdelay)+" seconds,")
+            else:
+                wfile.write("10 seconds,")
+
+            global post_reward_time
+            if(not(txt100.get()=="")):
+                post_reward_time = int(txt100.get())
+                wfile.write(str(post_reward_time)+",")
+            else:
+                wfile.write("5,") 
+
+
+            global tone_duration
+            if(not(txt101.get()=="")):
+                tone_duration = int(txt101.get())
+                wfile.write(str(tone_duration)+",")
+            else:
+                wfile.write("4,")
+
+
+            global cam_id    
+            if(not(txt1.get()=="")):    
+                cam_id = int(txt1.get())    
+                wfile.write(str(cam_id)+",")  
+            else:   
+                wfile.write("0,") 
 
             global genotype
             if(not(txt9.get()=="")):
                 genotype = txt9.get()
             
-                wfile.write("Genotype (W/M/T): "+str(genotype)+"\n")
+                wfile.write(str(genotype)+",")
             else:
-                wfile.write("Genotype (W/M/T): (blank)\n")
+                wfile.write("(blank),")
 
             global notes
             if(not(txt10.get()=="")):
                 notes = txt10.get()
             
-                wfile.write("Notes: "+str(notes)+"\n")
+                wfile.write(str(notes)+",")
             else:
-                wfile.write("Notes: (blank)\n")
-            
+                wfile.write("(blank),")
+
+            global pre_stimulus_time
+            if(not(txt52.get()=="")):
+                pre_stimulus_time = txt52.get()
+                wfile.write(str(pre_stimulus_time)+",")
+            else:
+                wfile.write("4,")
+
+            global pre_reward_time
+            if(not(txt53.get()=="")):
+                pre_reward_time = txt53.get()
+                wfile.write(str(pre_reward_time)+",")
+            else:
+                wfile.write("4,")
+
+            global reward_aversion_time
+            if(not(txt54.get()=="")):
+                reward_aversion_time = txt54.get()
+                wfile.write(str(reward_aversion_time)+",")
+            else:
+                wfile.write("4,")
+            wfile.write("\n")
             top1.destroy()
-            wfile.write("-"*50+"\n")
+            #wfile.write("-"*50+"\n")
             return 1
     def val(char):
         if str.isdigit(char) or char == "":
@@ -369,7 +377,6 @@ def startup():
         else:
             return False
 
-    val1 = (top1.register(val))
     val2 = (top1.register(val))
 
 
@@ -413,26 +420,19 @@ def startup():
     
     panel52 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel52.pack(anchor="w")
-    label52 = tkinter.Label(top1, text="Pre-stimulus Time: ",anchor="w",font=("Arial", 12))
+    label52 = tkinter.Label(top1, text="Pre-Stimulus Time: ",anchor="w",font=("Arial", 12))
     panel52.add(label52)
-    txt52 = tkinter.Entry(top1, validate='all') 
+    txt52 = tkinter.Entry(top1, validate='all', validatecommand=(val2, '%P')) 
     panel52.add(txt52)
 
     panel53 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel53.pack(anchor="w")
-    label53 = tkinter.Label(top1, text="Pre-reward Time: ",anchor="w",font=("Arial", 12))
+    label53 = tkinter.Label(top1, text="Pre-Reward Time: ",anchor="w",font=("Arial", 12))
     panel53.add(label53)
-    txt53 = tkinter.Entry(top1, validate='all') 
+    txt53 = tkinter.Entry(top1, validate='all', validatecommand=(val2, '%P')) 
     panel53.add(txt53)
 
 
-
-    panel100 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
-    panel100.pack(anchor="w")
-    label100 = tkinter.Label(top1, text="Post-reward Time: ",anchor="w",font=("Arial", 12)) 
-    panel100.add(label100)
-    txt100 = tkinter.Entry(top1, validate='all',) 
-    panel100.add(txt100)
 
 
 
@@ -440,15 +440,24 @@ def startup():
     panel54.pack(anchor="w")
     label54 = tkinter.Label(top1, text="Reward/Aversion Time: ",anchor="w",font=("Arial", 12))
     panel54.add(label54)
-    txt54 = tkinter.Entry(top1, validate='all',) 
+    txt54 = tkinter.Entry(top1, validate='all', validatecommand=(val2, '%P')) 
     panel54.add(txt54)
+
+
+
+    panel100 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
+    panel100.pack(anchor="w")
+    label100 = tkinter.Label(top1, text="Post-reward time: ",anchor="w",font=("Arial", 12)) 
+    panel100.add(label100)
+    txt100 = tkinter.Entry(top1, validate='all', validatecommand=(val2, '%P')) 
+    panel100.add(txt100)
 
 
     panel101 = tkinter.PanedWindow(panel2,orient=tkinter.HORIZONTAL)
     panel101.pack(anchor="w")
     label101 = tkinter.Label(top1, text="Tone Duration: ",anchor="w",font=("Arial", 12))
     panel101.add(label101)
-    txt101 = tkinter.Entry(top1, validate='all',) 
+    txt101 = tkinter.Entry(top1, validate='all', validatecommand=(val2, '%P')) 
     panel101.add(txt101)
 
     panel6 = tkinter.PanedWindow(panel2,orient=tkinter.VERTICAL)
